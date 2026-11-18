@@ -1,0 +1,16 @@
+# editor / assistant / environment
+.claude/
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+
+# simulation outputs (logs, videos, plots): regenerate with the scripts in sim/
+# the README media live in docs/media/ and are committed
+out/
+
+# generated at run time by sim/stairs_terrain.py (contains absolute local paths)
+sim/scenes/
+
+# third-party models are cloned separately (see README, "Running")
+third_party/

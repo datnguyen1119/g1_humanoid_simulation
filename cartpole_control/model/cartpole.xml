@@ -1,0 +1,68 @@
+<!--
+  Cart-pole for learning (Underactuated Robotics conventions).
+
+  q = [x, theta]
+    x      cart position along world x (m), limited to +-2 m by the rail
+    theta  pole angle (rad): 0 = hanging down, pi = upright.
+           Pole tip is at (x + L sin(theta), -L cos(theta)) relative to the pivot,
+           which is why the hinge axis is -y.
+  u = horizontal force on the cart (N), clipped to +-20 N.
+
+  Parameters (explicit <inertial>, geoms are visual only):
+    cart  m_c = 1.0 kg
+    pole  m_p = 0.2 kg, length L = 0.6 m, COM at l = 0.3 m,
+          I_com = m_p L^2 / 12 = 0.006 kg m^2  (uniform rod)
+  No friction, damping or armature, so the hand-derived equations match exactly.
+-->
+<mujoco model="cartpole">
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.002" integrator="RK4" gravity="0 0 -9.81"/>
+
+  <visual>
+    <headlight ambient="0.4 0.4 0.4" diffuse="0.6 0.6 0.6"/>
+    <global offwidth="1280" offheight="720"/>
+  </visual>
+
+  <default>
+    <geom contype="0" conaffinity="0"/>
+  </default>
+
+  <asset>
+    <texture name="grid" type="2d" builtin="checker" width="512" height="512"
+             rgb1="0.2 0.25 0.3" rgb2="0.15 0.2 0.25"/>
+    <material name="grid" texture="grid" texrepeat="8 8" reflectance="0.1"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 -2 3" dir="0 0.5 -1"/>
+    <geom name="floor" type="plane" size="4 2 0.05" pos="0 0 -1" material="grid"/>
+    <!-- Rail (visual) and its end stops at +-2 m -->
+    <geom name="rail" type="capsule" fromto="-2.1 0 0 2.1 0 0" size="0.015" rgba="0.6 0.6 0.6 1"/>
+    <geom name="stop_l" type="box" pos="-2.15 0 0" size="0.02 0.05 0.05" rgba="0.8 0.2 0.2 1"/>
+    <geom name="stop_r" type="box" pos="2.15 0 0" size="0.02 0.05 0.05" rgba="0.8 0.2 0.2 1"/>
+
+    <body name="cart">
+      <joint name="slider" type="slide" axis="1 0 0" range="-2 2"/>
+      <inertial pos="0 0 0" mass="1.0" diaginertia="1e-3 1e-3 1e-3"/>
+      <geom name="cart" type="box" size="0.1 0.06 0.05" rgba="0.2 0.5 0.9 1"/>
+
+      <body name="pole">
+        <joint name="hinge" type="hinge" axis="0 -1 0"/>
+        <!-- uniform rod: COM at 0.3 m below pivot when theta = 0 -->
+        <inertial pos="0 0 -0.3" mass="0.2" diaginertia="0.006 0.006 1e-6"/>
+        <geom name="pole" type="capsule" fromto="0 0 0 0 0 -0.6" size="0.015" rgba="0.95 0.6 0.1 1"/>
+        <geom name="tip" type="sphere" pos="0 0 -0.6" size="0.03" rgba="0.95 0.3 0.1 1"/>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <motor name="force" joint="slider" gear="1" ctrlrange="-20 20"/>
+  </actuator>
+
+  <keyframe>
+    <key name="down"    qpos="0 0"/>
+    <key name="up"      qpos="0 3.14159265"/>
+    <key name="up_tilt" qpos="0 3.04159265"/>
+  </keyframe>
+</mujoco>
